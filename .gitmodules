@@ -1,11 +1,11 @@
-# Use the zoompilot opendbc fork. Changes to this file make submodule sync refresh
+# Use the autodax opendbc fork (of zoompilot/opendbc). Changes to this file make submodule sync refresh
 # legacy URLs.
 [submodule "panda"]
   path = panda
   url = https://github.com/sunnyhaibin/panda.git
 [submodule "opendbc"]
   path = opendbc_repo
-  url = https://github.com/zoompilot/opendbc.git
+  url = https://github.com/autodax/opendbc.git
 [submodule "msgq"]
   path = msgq_repo
   url = https://github.com/sunnypilot/msgq.git
