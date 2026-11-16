@@ -342,8 +342,8 @@ one meaning, it alternates the two lane-centering systems:
 
 | Press from | Result |
 | --- | --- |
-| MADS off, camera off (or armed) | MADS on; the press arms the camera (and MRCC, stock); we press the camera off within 1 s |
-| MADS on, camera off | MADS off; the press arms the camera; we press it off within 1 s, so nobody steers until the driver presses again |
+| MADS off, camera off (or armed) | MADS on; the press toggles the camera between 0 and 2 (and arms MRCC if it was off, stock) |
+| MADS on, camera off | MADS off; the press toggles the camera between 0 and 2 |
 | any, MRCC button (BIT1 low) | stock: MRCC and the camera both off; MADS untouched |
 
 The second row changed on 2026-09-09 after a user report on the first build: TJA press, MRCC
@@ -355,7 +355,14 @@ state (it only reaches the camera and can only toggle its lane centering). The s
 warning still fires only while openpilot steers.
 
 MRCC becoming armed on the first press is the button's stock behaviour and is left alone. It is
-armed, not engaged; SET still has to be pressed. No MRCC-off spoof on bus 0.
+armed, not engaged; SET still has to be pressed. No MRCC-off spoof on bus 0: openpilot never
+presses the MRCC button in response to TJA, whatever the MRCC state (carcontroller has no
+MRCC-off builder and the panda refuses any car-side CRZ_BTNS with `BIT1` low, in every state;
+`TestTjaNeverPressesMrcc`, `TestMazdaNoMrccPress`).
+
+As of 2026-11-16 the camera's TJA 2 is left alone (`update_camera_tja`): only an active camera
+(3 to 5) is pressed off on bus 2, and only while openpilot steers. So with MRCC armed a TJA press
+toggles the camera between 0 and 2 and nothing else.
 
 **1. Camera press on bus 2** (`CarController.update_camera_tja`, opendbc b697d69be6). Carstate
 reads `stock_tja` live off the parsed 0x440 (0 when the camera is stale, never latched: the
@@ -466,6 +473,10 @@ long); `test_camera_tja_press_bytes`; the golden tx unchanged; mads `TestMadsTja
   luck (route 00000018: in phase on segs 7-9 and 15, out of phase after seg 12). A forwarded
   frame cannot be rewritten and dropping it opens a counter gap the camera validates. Rebuilt
   2026-09-09 on top of the bus-2 camera press (above).
+- Undoing the TJA-caused MRCC arm with a synthetic MRCC-off press on bus 0 (up to three frames
+  after the TJA release, only when MRCC was off before the press, declared cars only). Removed
+  2026-11-16: a TJA press should leave MRCC exactly as the body sets it, and the MRCC-off press
+  also dropped the camera's TJA 2 it had just armed.
 - Keeping `acc_main_on` on MRCC with the button declared (the 09-09 draft plan): the panda's
   MADS exits lateral on the acc_main falling edge, so the MRCC master button would have killed
   the panda's lateral under a still-engaged software MADS. The guard stays.
